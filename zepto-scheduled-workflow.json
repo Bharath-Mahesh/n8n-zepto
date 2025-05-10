@@ -1,0 +1,139 @@
+{
+  "name": "zepto-workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://6318-27-5-12-136.ngrok-free.app/order",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"Content-Type\": \"application/json\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\"products\": [\"{{ $json.products[0] }}\"],\n\"upi_id\": \"{{ $('UPI Id').item.json.upi }}\"\n}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        -460
+      ],
+      "id": "b839a2bb-701a-4d9f-9983-1599ac57192c",
+      "name": "Zepto Agent"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ae15a4e1-fa82-486a-9dc3-6f307fa8af14",
+              "name": "upi",
+              "value": "9090909090@paytm",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        -460
+      ],
+      "id": "d3f735f7-962a-49fd-9f3b-1b46e505ed56",
+      "name": "UPI Id"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -720,
+        -460
+      ],
+      "id": "7068c5b5-0dbf-48e8-a9e2-1e1c634868dc",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ae15a4e1-fa82-486a-9dc3-6f307fa8af14",
+              "name": "products",
+              "value": "[\"Milk\"]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -500,
+        -460
+      ],
+      "id": "9a9c13ac-4f17-45fa-8ac0-2ba8cbdce19e",
+      "name": "groceries"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "UPI Id": {
+      "main": [
+        [
+          {
+            "node": "Zepto Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "groceries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "groceries": {
+      "main": [
+        [
+          {
+            "node": "UPI Id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "96ae1eef-64f6-404e-9747-f0a86b28e491",
+  "meta": {
+    "instanceId": "0ce534e46334d04c1d1890c60b08be5c97e6526cb022a0a0dc9c8ba885a95bb8"
+  },
+  "id": "1v0M82BnqkuPIhNs",
+  "tags": []
+}

@@ -1,0 +1,193 @@
+{
+  "name": "zepto",
+  "nodes": [
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.text }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        360
+      ],
+      "id": "c83ae005-7767-4e8e-ac55-49590dd04967",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.text }}",
+        "options": {
+          "systemMessage": "=You are an AI assistant that extracts grocery items from user requests. \n\n#Translate any language into english, Output should only in english\n\n- Your task is to extract only the names of grocery items from the user input.\n- The response must be formatted as a **JSON list** (`[]`) containing only the item names.\n- Do not return explanations, sentences, or any other text.\n- If no grocery items are found, return an empty list `[]`.\n\n### **Examples:**\nUser: \"I need to buy rice, chicken, and onions for cooking.\"\nResponse:\n[\"rice\", \"chicken\", \"onions\"]\n\nUser: \"Can you add milk and bread to my grocery list?\"\nResponse:\n[\"milk\", \"bread\"]\n\nUser: \"Hello, how are you?\"\nResponse:\n[]",
+          "returnIntermediateSteps": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        440,
+        0
+      ],
+      "id": "622843cc-c9de-43be-84e2-ccc09ce463e0",
+      "name": "Ingredient list"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://3504-3-109-129-91.ngrok-free.app/order",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"Content-Type\": \"application/json\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\"products\":{{ $('Ingredient list').item.json.output }},\n\"upi_id\": \"{{ $json.upi_id }}\"\n}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        220
+      ],
+      "id": "e3f53c84-ed63-417d-bd4f-147fca0978e6",
+      "name": "Zepto Agent1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "6044a495-2ab2-4375-941a-76394b9755a1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        160,
+        0
+      ],
+      "id": "af62aed3-2756-4818-bcf6-167bfb4acba3",
+      "name": "Webhook",
+      "webhookId": "6044a495-2ab2-4375-941a-76394b9755a1"
+    },
+    {
+      "parameters": {
+        "model": "gemma3:4b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        400,
+        280
+      ],
+      "id": "bc0e7aef-b84a-429c-ac77-60bcee637d9a",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "3TFM38P8K1s6KAxd",
+          "name": "Ollama account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f34de68a-a57b-440d-b56d-6cdf0d82c6cd",
+              "name": "upi_id",
+              "value": "9019219129@ptaxis",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        0
+      ],
+      "id": "e62ade6a-1b96-4cfe-a385-23e4c931bc69",
+      "name": "UPI Id"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Ingredient list",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ingredient list": {
+      "main": [
+        [
+          {
+            "node": "UPI Id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zepto Agent1": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Ingredient list",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ingredient list",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UPI Id": {
+      "main": [
+        [
+          {
+            "node": "Zepto Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "88566d8b-f63c-432d-9cbf-82d1c92f73c8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0ce534e46334d04c1d1890c60b08be5c97e6526cb022a0a0dc9c8ba885a95bb8"
+  },
+  "id": "QGiMz4scm79JGLGQ",
+  "tags": []
+}
