@@ -69,6 +69,12 @@ curl -X POST http://localhost:8000/order \
 
 This project includes pre-configured n8n workflows that you can import to automate your Zepto orders.
 
+For n8n support, you can check out these resources:
+- [Official n8n Repository](https://github.com/n8n-io/n8n)
+- [ClaraVerse GitHub](https://github.com/badboysm890/ClaraVerse) - A privacy-first AI assistant with n8n-style flow builder
+- [ClaraVerse Website](https://claraverse.netlify.app/) - Web interface for the ClaraVerse AI assistant
+- [YouTube Tutorial](https://www.youtube.com/watch?v=eoDXeudl1KY) - Detailed explanation of this workflow (in Tamil)
+
 ### Scheduled Order Workflow
 
 The scheduled workflow allows you to place Zepto orders at specific times automatically.
