@@ -72,7 +72,7 @@ This project includes pre-configured n8n workflows that you can import to automa
 For n8n support, you can check out these resources:
 - [Official n8n Repository](https://github.com/n8n-io/n8n)
 - [ClaraVerse GitHub](https://github.com/badboysm890/ClaraVerse) - A privacy-first AI assistant with n8n-style flow builder
-- [ClaraVerse Website](https://claraverse.netlify.app/) - Web interface for the ClaraVerse AI assistant
+- [ClaraVerse Website](https://claraverse.netlify.app/)
 - [YouTube Tutorial](https://www.youtube.com/watch?v=eoDXeudl1KY) - Detailed explanation of this workflow (in Tamil)
 
 ### Scheduled Order Workflow
