@@ -117,50 +117,74 @@ async def open_cart(page: Page):
         logger.error(f"Error opening cart: {e}")
         return True
 
-def is_chrome_running():
-    """Check if Chrome is already running with remote debugging enabled."""
+async def is_chrome_running():
+    """
+    Checks if a headless Google Chrome process with remote debugging enabled
+    is currently running on Linux.
+    """
     try:
-        response = requests.get("http://localhost:9222/json/version", timeout=2)
-        return response.status_code == 200
-    except:
+        # Look for 'google-chrome-stable' in the process list that also has '--remote-debugging-port=9222'
+        result = subprocess.run(
+            ['pgrep', '-f', 'google-chrome-stable.*--remote-debugging-port=9222'],
+            capture_output=True,
+            text=True,
+            check=False # Do not raise an error if no process is found
+        )
+        return bool(result.stdout.strip())
+    except Exception as e:
+        logger.warning(f"Error checking if Chrome is running: {e}")
         return False
 
+# --- Your ensure_chrome_running function, corrected for Linux ---
 async def ensure_chrome_running():
-    """Ensure Chrome is running with remote debugging enabled."""
     try:
         logger.info("Checking if Chrome is running with remote debugging")
-        if not is_chrome_running():
+        if not await is_chrome_running(): # Await the async is_chrome_running
             logger.info("Starting Chrome with remote debugging")
-            chrome_path = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-            
-            # On macOS, check if Chrome is already running without debug port
+
+            # !!! CORRECTED: Use the Linux executable path/name !!!
+            chrome_executable = 'google-chrome-stable' # This is in your PATH on Ubuntu
+            # Alternatively, if not in PATH or for explicit path:
+            # chrome_executable = '/opt/google/chrome/google-chrome'
+
+            # !!! CORRECTED: On Linux, check/kill Linux Chrome instances !!!
             try:
-                chrome_running = subprocess.run(['pgrep', 'Google Chrome'], capture_output=True, text=True)
-                if chrome_running.stdout.strip():
-                    logger.info("Chrome is already running. Please close all Chrome instances first.")
-                    logger.info("Attempting to kill existing Chrome instances...")
+                # Try to kill any existing headless Chrome processes to ensure a clean start.
+                # Look for 'google-chrome-stable' and '--headless' or '--remote-debugging-port'.
+                # Adding --disable-gpu also helps target automation instances.
+                subprocess.run(
+                    ['pkill', '-f', 'google-chrome-stable.*--headless'],
+                    check=False # Don't raise error if no process is found
+                )
+                logger.info("Killed any existing headless Chrome instances.")
+                # Give a brief moment for processes to terminate
+                time.sleep(1)
             except Exception as e:
-                logger.warning(f"Error checking/killing Chrome: {e}")
-            
-            # Start Chrome with remote debugging
+                logger.warning(f"Error attempting to kill existing Chrome: {e}")
+
+            # Start Chrome with remote debugging and crucial headless flags for Linux
             process = subprocess.Popen([
-                chrome_path,
+                chrome_executable,
                 '--remote-debugging-port=9222',
+                '--headless=new', # CRITICAL: For running without a GUI on a server
+                '--disable-gpu',  # Recommended: Avoids GPU issues on servers
+                '--no-sandbox',   # IMPORTANT: Often needed on servers/containers if not root
                 '--no-first-run',
                 '--no-default-browser-check',
-                '--user-data-dir=/tmp/zepto_chrome_profile',  # Use a clean profile to avoid conflicts
-                'https://www.zeptonow.com'  # Open Zepto directly to ensure it loads
+                '--user-data-dir=/tmp/zepto_chrome_profile', # Use a clean profile
+                'https://www.zeptonow.com' # Open Zepto directly
             ])
-            
+            logger.info(f"Launched Chrome process with PID: {process.pid}")
+
             # Wait for Chrome to start and be ready
             max_retries = 10
             for i in range(max_retries):
                 logger.info(f"Waiting for Chrome to be ready (attempt {i+1}/{max_retries})")
-                time.sleep(2)  # Give Chrome more time to start
-                if is_chrome_running():
+                time.sleep(2) # Give Chrome time to start up
+                if await is_chrome_running(): # Await the async is_chrome_running
                     logger.info("Chrome started successfully")
                     return True
-            
+
             logger.error("Chrome failed to start after multiple attempts")
             return False
         else:
@@ -169,7 +193,6 @@ async def ensure_chrome_running():
     except Exception as e:
         logger.error(f"Error ensuring Chrome is running: {e}")
         return False
-
 async def enter_upi_and_pay(page: Page, upi_id: str):
     """Enter UPI ID and click Verify and Pay button."""
     try:
