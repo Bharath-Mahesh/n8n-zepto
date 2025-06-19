@@ -51,7 +51,7 @@ async def handle_popups(page: Page):
         
         for selector in popup_selectors:
             try:
-                popup = await page.wait_for_selector(selector, timeout=2000)
+                popup = await page.wait_for_selector(selector, timeout=100)
                 if popup:
                     logger.info(f"Found popup with selector: {selector}")
                     # Try clicking the close button first
@@ -88,7 +88,7 @@ async def find_add_to_cart_button(page):
     
     for selector in selectors:
         try:
-            button = await page.wait_for_selector(selector, timeout=2000)
+            button = await page.wait_for_selector(selector, timeout=100)
             if button:
                 logger.info(f"Found Add to Cart button using selector: {selector}")
                 return button
@@ -139,8 +139,6 @@ async def ensure_chrome_running():
                 if chrome_running.stdout.strip():
                     logger.info("Chrome is already running. Please close all Chrome instances first.")
                     logger.info("Attempting to kill existing Chrome instances...")
-                    subprocess.run(['pkill', '-f', 'Google Chrome'])
-                    time.sleep(2)  # Give time for Chrome to close
             except Exception as e:
                 logger.warning(f"Error checking/killing Chrome: {e}")
             
@@ -177,7 +175,7 @@ async def enter_upi_and_pay(page: Page, upi_id: str):
     try:
         # Wait for UPI input field
         logger.info("Waiting for UPI input field")
-        upi_input = await page.wait_for_selector('input[testid="edt_vpa"]', timeout=5000)
+        upi_input = await page.wait_for_selector('input[testid="edt_vpa"]', timeout=500)
         if not upi_input:
             raise Exception("UPI input field not found")
         
@@ -200,7 +198,7 @@ async def enter_upi_and_pay(page: Page, upi_id: str):
         verify_button = None
         for selector in verify_button_selectors:
             try:
-                verify_button = await page.wait_for_selector(selector, timeout=2000)
+                verify_button = await page.wait_for_selector(selector, timeout=100)
                 if verify_button:
                     logger.info(f"Found Verify and Pay button using selector: {selector}")
                     break
@@ -343,7 +341,7 @@ async def create_order(order: OrderRequest):
                 
                 # Wait for and click the payment button
                 logger.info("Looking for payment button")
-                payment_button = await page.wait_for_selector('button:has-text("Click to Pay")', timeout=10000)
+                payment_button = await page.wait_for_selector('button:has-text("Click to Pay")', timeout=200)
                 if payment_button:
                     await payment_button.click()
                     logger.info("Clicked payment button")
@@ -357,7 +355,7 @@ async def create_order(order: OrderRequest):
                 
                 # Wait for the payment options to load
                 logger.info("Waiting for payment options")
-                await page.wait_for_selector('text=UPI', timeout=10000)
+                await page.wait_for_selector('text=UPI', timeout=100)
                 
                 # Select UPI payment method
                 await page.click('text=UPI')
