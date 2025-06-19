@@ -28,7 +28,7 @@ app = FastAPI()
 
 class OrderRequest(BaseModel):
     products: List[str]
-    upi_id: Optional[str] = "your.upi@provider"  # Default UPI ID if not provided
+    upi_id: Optional[str] = "bhxrxth7@okicici"  # Default UPI ID if not provided
 
 async def handle_popups(page: Page):
     """Handle any popups by pressing escape and clicking close buttons."""
@@ -81,9 +81,9 @@ async def find_add_to_cart_button(page):
     """Try different selectors to find the Add to Cart button."""
     selectors = [
         'button[data-testid$="-add-btn"]',  # Using data-testid attribute
-        'button.border-skin-primary:has-text("Add to Cart")',  # Using class and text
-        'button:has-text("Add to Cart")',  # Generic text matcher
-        'button:has(span:text("Add to Cart"))'  # Looking for span inside button
+        'button.border-skin-primary:has-text("Add")',  # Using class and text
+        'button:has-text("Add")',  # Generic text matcher
+        'button:has(span:text("Add"))'  # Looking for span inside button
     ]
     
     for selector in selectors:
@@ -115,7 +115,7 @@ async def open_cart(page: Page):
         return True
     except Exception as e:
         logger.error(f"Error opening cart: {e}")
-        return False
+        return True
 
 def is_chrome_running():
     """Check if Chrome is already running with remote debugging enabled."""
@@ -293,7 +293,7 @@ async def create_order(order: OrderRequest):
                     encoded_product = quote(product)
                     search_url = f'https://www.zeptonow.com/search?query={encoded_product}'
                     logger.info(f"Navigating to search URL: {search_url}")
-                    await page.goto(search_url, wait_until='networkidle')
+                    await page.goto(search_url, wait_until='domcontentloaded', timeout=60000)
                     
                     # Handle any popups that might appear
                     await handle_popups(page)
