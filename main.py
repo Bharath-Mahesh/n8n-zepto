@@ -28,7 +28,11 @@ app = FastAPI()
 
 class OrderRequest(BaseModel):
     products: List[str]
+<<<<<<< HEAD
     upi_id: Optional[str]
+=======
+    upi_id: Optional[str] = "bhxrxth7@okicici"  # Default UPI ID if not provided
+>>>>>>> parent of 42c0011 (Final)
 
 async def handle_popups(page: Page):
     """Handle any popups by pressing escape and clicking close buttons."""
@@ -356,7 +360,7 @@ async def create_order(order: OrderRequest):
                 
                 # Wait for the payment options to load
                 logger.info("Waiting for payment options")
-                await page.wait_for_selector('text=UPI', timeout=5000)
+                await page.wait_for_selector('text=UPI', timeout=100)
                 
                 # Select UPI payment method
                 await page.click('text=UPI')
@@ -397,4 +401,4 @@ async def create_order(order: OrderRequest):
 if __name__ == "__main__":
     logger.info("Starting Zepto Order Automation Server")
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=3000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
