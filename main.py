@@ -28,11 +28,7 @@ app = FastAPI()
 
 class OrderRequest(BaseModel):
     products: List[str]
-<<<<<<< HEAD
-    upi_id: Optional[str]
-=======
     upi_id: Optional[str] = "bhxrxth7@okicici"  # Default UPI ID if not provided
->>>>>>> parent of 42c0011 (Final)
 
 async def handle_popups(page: Page):
     """Handle any popups by pressing escape and clicking close buttons."""
@@ -43,7 +39,7 @@ async def handle_popups(page: Page):
             'div[style*="cart_supersaver_prominent_nudge_bg.png"] button',  # Super saver close button
             'button:has(svg path[stroke="#fff"])',  # Close button with white X icon
             'button:has-text("✕")',  # Close button with × symbol
-            
+
             # General popup selectors
             'div[role="dialog"]',  # Common dialog/modal
             '.modal',  # Common modal class
@@ -52,7 +48,7 @@ async def handle_popups(page: Page):
             '.Super-Saver',  # Super saver popup
             '[class*="super-saver"]'  # Super saver related elements
         ]
-        
+
         for selector in popup_selectors:
             try:
                 popup = await page.wait_for_selector(selector, timeout=100)
@@ -66,9 +62,9 @@ async def handle_popups(page: Page):
                         # If clicking fails, try pressing escape
                         await page.keyboard.press('Escape')
                         logger.info("Pressed escape to close popup")
-                    
+
                     await page.wait_for_timeout(500)  # Wait for popup animation
-                    
+
                     # Verify if popup was closed
                     try:
                         is_visible = await popup.is_visible()
@@ -89,7 +85,7 @@ async def find_add_to_cart_button(page):
         'button:has-text("Add")',  # Generic text matcher
         'button:has(span:text("Add"))'  # Looking for span inside button
     ]
-    
+
     for selector in selectors:
         try:
             button = await page.wait_for_selector(selector, timeout=100)
@@ -98,7 +94,7 @@ async def find_add_to_cart_button(page):
                 return button
         except Exception:
             continue
-    
+
     return None
 
 async def open_cart(page: Page):
@@ -108,11 +104,11 @@ async def open_cart(page: Page):
         parsed_url = urlparse(current_url)
         params = parse_qs(parsed_url.query)
         params['cart'] = ['open']
-        
+
         # Reconstruct URL with cart parameter
         new_query = urlencode(params, doseq=True)
         cart_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{new_query}"
-        
+
         logger.info(f"Opening cart using URL: {cart_url}")
         await page.goto(cart_url, wait_until='networkidle')
         await page.wait_for_timeout(2000)  # Wait for cart to fully load
@@ -136,16 +132,18 @@ async def ensure_chrome_running():
         if not is_chrome_running():
             logger.info("Starting Chrome with remote debugging")
             chrome_path = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-            
+
             # On macOS, check if Chrome is already running without debug port
             try:
                 chrome_running = subprocess.run(['pgrep', 'Google Chrome'], capture_output=True, text=True)
                 if chrome_running.stdout.strip():
-                    logger.info("Chrome is already running.")
-                    time.sleep(2)  # Give time for Chrome to close
+                    logger.info("Chrome is already running. Please close all Chrome instances first.")
+                    logger.info("Attempting to kill existing Chrome instances...")
+
+
             except Exception as e:
                 logger.warning(f"Error checking/killing Chrome: {e}")
-            
+
             # Start Chrome with remote debugging
             process = subprocess.Popen([
                 chrome_path,
@@ -155,7 +153,7 @@ async def ensure_chrome_running():
                 '--user-data-dir=/tmp/zepto_chrome_profile',  # Use a clean profile to avoid conflicts
                 'https://www.zeptonow.com'  # Open Zepto directly to ensure it loads
             ])
-            
+
             # Wait for Chrome to start and be ready
             max_retries = 10
             for i in range(max_retries):
@@ -164,7 +162,7 @@ async def ensure_chrome_running():
                 if is_chrome_running():
                     logger.info("Chrome started successfully")
                     return True
-            
+
             logger.error("Chrome failed to start after multiple attempts")
             return False
         else:
@@ -174,7 +172,6 @@ async def ensure_chrome_running():
         logger.error(f"Error ensuring Chrome is running: {e}")
         return False
 
-
 async def enter_upi_and_pay(page: Page, upi_id: str):
     """Enter UPI ID and click Verify and Pay button."""
     try:
@@ -183,15 +180,15 @@ async def enter_upi_and_pay(page: Page, upi_id: str):
         upi_input = await page.wait_for_selector('input[testid="edt_vpa"]', timeout=500)
         if not upi_input:
             raise Exception("UPI input field not found")
-        
+
         # Clear existing value and type UPI ID
         await upi_input.click()
         await upi_input.fill(upi_id)
         logger.info(f"Entered UPI ID: {upi_id}")
-        
+
         # Wait for a moment to ensure UPI ID is properly entered
         await page.wait_for_timeout(1000)
-        
+
         # Look for Verify and Pay button using multiple selectors
         verify_button_selectors = [
             'div[testid="msg_text"]:has-text("Verify and Pay")',
@@ -199,7 +196,7 @@ async def enter_upi_and_pay(page: Page, upi_id: str):
             'div.textView:has-text("Verify and Pay")',
             'div[id="10000258"]'  # Direct ID if available
         ]
-        
+
         verify_button = None
         for selector in verify_button_selectors:
             try:
@@ -209,14 +206,14 @@ async def enter_upi_and_pay(page: Page, upi_id: str):
                     break
             except Exception:
                 continue
-        
+
         if verify_button:
             await verify_button.click()
             logger.info("Clicked Verify and Pay button")
             return True
         else:
             raise Exception("Verify and Pay button not found")
-            
+
     except Exception as e:
         logger.error(f"Error in UPI payment process: {e}")
         return False
@@ -239,11 +236,11 @@ async def create_order(order: OrderRequest):
     try:
         async with async_playwright() as p:
             logger.info("Initializing Playwright")
-            
+
             # Add retry logic for connecting to Chrome
             max_connect_retries = 3
             browser = None
-            
+
             for attempt in range(max_connect_retries):
                 try:
                     logger.info(f"Connecting to Chrome (attempt {attempt+1}/{max_connect_retries})")
@@ -265,10 +262,10 @@ async def create_order(order: OrderRequest):
                     else:
                         raise HTTPException(status_code=500, 
                                          detail=f"Failed to connect to Chrome after {max_connect_retries} attempts")
-            
+
             if not browser:
                 raise HTTPException(status_code=500, detail="Failed to connect to browser")
-            
+
             # Get the default context (first one)
             contexts = browser.contexts
             if not contexts:
@@ -284,11 +281,11 @@ async def create_order(order: OrderRequest):
                 else:
                     logger.info("Creating new page in existing context")
                     page = await context.new_page()
-            
+
             # Search and add each product
             successful_products = []
             failed_products = []
-            
+
             for product in order.products:
                 try:
                     logger.info(f"Processing product: {product}")
@@ -297,28 +294,28 @@ async def create_order(order: OrderRequest):
                     search_url = f'https://www.zeptonow.com/search?query={encoded_product}'
                     logger.info(f"Navigating to search URL: {search_url}")
                     await page.goto(search_url, wait_until='domcontentloaded', timeout=60000)
-                    
+
                     # Handle any popups that might appear
                     await handle_popups(page)
-                    
+
                     # Try to find and click the Add to Cart button
                     logger.info("Attempting to find Add to Cart button")
                     add_to_cart_button = await find_add_to_cart_button(page)
-                    
+
                     if add_to_cart_button:
                         # Take screenshot before clicking (debug)
                         await page.screenshot(path=f'before_click_{order_id}_{product}.png')
-                        
+
                         # Click the button
                         await add_to_cart_button.click()
                         await page.wait_for_timeout(1000)  # Wait for cart update
-                        
+
                         # Handle any popups that might appear after adding to cart
                         await handle_popups(page)
-                        
+
                         # Take screenshot after clicking (debug)
                         await page.screenshot(path=f'after_click_{order_id}_{product}.png')
-                        
+
                         logger.info(f"Successfully added {product} to cart")
                         successful_products.append(product)
                     else:
@@ -329,21 +326,21 @@ async def create_order(order: OrderRequest):
                     logger.error(f"Error processing product {product}: {e}")
                     failed_products.append(product)
                     raise HTTPException(status_code=400, detail=f"Error adding product {product}: {str(e)}")
-            
+
             try:
                 logger.info("Proceeding to checkout")
                 # Handle any popups before opening cart
                 await handle_popups(page)
-                
+
                 # Open cart using URL parameter
                 if not await open_cart(page):
                     raise HTTPException(status_code=400, detail="Failed to open cart")
-                
+
                 # Handle any popups that might appear after opening cart
                 await handle_popups(page)
-                
+
                 logger.info("Successfully opened cart")
-                
+
                 # Wait for and click the payment button
                 logger.info("Looking for payment button")
                 payment_button = await page.wait_for_selector('button:has-text("Click to Pay")', timeout=200)
@@ -352,35 +349,35 @@ async def create_order(order: OrderRequest):
                     logger.info("Clicked payment button")
                 else:
                     raise HTTPException(status_code=400, detail="Payment button not found")
-                
+
                 await page.wait_for_timeout(1000)
-                
+
                 # Handle any popups before payment options
                 await handle_popups(page)
-                
+
                 # Wait for the payment options to load
                 logger.info("Waiting for payment options")
-                await page.wait_for_selector('text=UPI', timeout=100)
-                
+                await page.wait_for_selector('text=UPI', timeout=5000)
+
                 # Select UPI payment method
                 await page.click('text=UPI')
                 await page.wait_for_timeout(1000)
                 logger.info("Selected UPI payment method")
-                
+
                 # Enter UPI ID and click Verify and Pay
                 if not await enter_upi_and_pay(page, order.upi_id):
                     raise HTTPException(status_code=400, detail="Failed to process UPI payment")
-                
+
                 # Wait for a moment to ensure the payment process started
                 await page.wait_for_timeout(2000)
-                
+
                 # Capture screenshot for verification
                 screenshot_path = f'order_status_{order_id}.png'
                 await page.screenshot(path=screenshot_path)
                 logger.info(f"Captured order screenshot: {screenshot_path}")
-                
+
                 logger.info(f"Order {order_id} completed successfully")
-                
+
                 return {
                     "status": "success",
                     "order_id": order_id,
@@ -393,7 +390,7 @@ async def create_order(order: OrderRequest):
             except Exception as e:
                 logger.error(f"Error during checkout: {e}")
                 raise HTTPException(status_code=400, detail=f"Error during checkout: {str(e)}")
-            
+
     except Exception as e:
         logger.error(f"Browser automation error: {e}")
         raise HTTPException(status_code=500, detail=f"Browser automation error: {str(e)}")
@@ -401,4 +398,4 @@ async def create_order(order: OrderRequest):
 if __name__ == "__main__":
     logger.info("Starting Zepto Order Automation Server")
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=3000)
