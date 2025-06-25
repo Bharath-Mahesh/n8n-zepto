@@ -1,0 +1,101 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "44fd1a02-7ef5-45cc-a185-8760fe33669f",
+              "name": "product",
+              "value": "=['MILK']",
+              "type": "array"
+            },
+            {
+              "id": "9fd3b2d0-9896-41ed-8fb0-e98247fee332",
+              "name": "upi_id",
+              "value": "bhxrxth7@okicici",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -620,
+        0
+      ],
+      "id": "29b4004d-5513-4da2-80a7-b09548aa4801",
+      "name": "INPUTS"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://0.0.0.0:3000/order",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "products",
+              "value": "={{ $json.product }}"
+            },
+            {
+              "name": "upi_id",
+              "value": "={{ $json.upi_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "afd8c2b1-180a-4757-9b6e-997b6d6c9d8f",
+      "name": "ZEPTO AI AGENT"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -840,
+        0
+      ],
+      "id": "6ca2ee3f-3498-4807-bf12-2f85e6bbe02f",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "connections": {
+    "INPUTS": {
+      "main": [
+        [
+          {
+            "node": "ZEPTO AI AGENT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "INPUTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9742c096d284d0db9b4736b7b84e2baa27a9f2c618d7c47f6421e10684ce3af6"
+  }
+}
